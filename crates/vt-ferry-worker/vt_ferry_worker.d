@@ -1,0 +1,31 @@
+provider vt_ferry_worker {
+    probe mailbox_doorbell();
+    probe mailbox_request_begin(uint64_t, uint64_t, uint64_t);
+    probe mailbox_request_end(uint64_t, uint64_t, uint64_t, uint64_t);
+    probe mailbox_irq(uint64_t);
+
+    probe vt_output_begin(uint64_t, uint64_t);
+    probe vt_output_shared_copy_begin(uint64_t, uint64_t, uint64_t);
+    probe vt_output_shared_copy_end(uint64_t, uint64_t);
+    probe vt_output_inline_copy_begin(uint64_t, uint64_t);
+    probe vt_output_inline_copy_end(uint64_t, uint64_t);
+    probe vt_output_queued(uint64_t, uint64_t, uint64_t);
+    probe vt_read_output_copy_begin(uint64_t, uint64_t, uint64_t);
+    probe vt_read_output_copy_end(uint64_t, uint64_t);
+    probe vt_release_output(uint64_t, uint64_t, uint64_t);
+    probe vt_source_wrap_begin(uint64_t, uint64_t, uint64_t, uint64_t);
+    probe vt_source_wrap_end(uint64_t, uint64_t);
+    probe vt_session_create_begin(uint64_t, uint64_t, uint64_t, uint64_t);
+    probe vt_session_create_end(uint64_t, uint64_t);
+    probe vt_set_property_begin(uint64_t, uint64_t);
+    probe vt_set_property_end(uint64_t, uint64_t);
+    probe vt_prepare_begin(uint64_t);
+    probe vt_prepare_end(uint64_t, uint64_t);
+    probe vt_encode_frame_begin(uint64_t, uint64_t, uint64_t);
+    probe vt_encode_frame_end(uint64_t, uint64_t, uint64_t);
+    probe vt_encode_output_begin(uint64_t, uint64_t, uint64_t, uint64_t);
+    probe vt_complete_frames_begin(uint64_t);
+    probe vt_complete_frames_end(uint64_t, uint64_t);
+    probe cv_pixel_buffer_lock_begin(uint64_t);
+    probe cv_pixel_buffer_lock_end(uint64_t, uint64_t);
+};

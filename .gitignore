@@ -1,0 +1,18 @@
+artifacts/
+*.h264
+guest-shim/build/
+.serena/
+.claude/
+.agents/
+# Internal-only docs (kept locally, not part of the public repo)
+AGENTS.md
+HANDOFF.md
+IMPLEMENTATION-BACKLOG.md
+SYMBOL-INVENTORY.md
+PRD-smolvt-videotoolbox.md
+host-worker-rs/target/
+target/
+**/*.rs.bk
+*.log
+.DS_Store
+.vscode/

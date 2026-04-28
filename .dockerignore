@@ -1,0 +1,8 @@
+target/
+artifacts/
+.cargo/
+.git/
+.claude/
+.agents/
+*.log
+.DS_Store

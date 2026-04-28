@@ -1,0 +1,24 @@
+[package]
+name = "vt-ferry-shim"
+description = "Linux-guest VideoToolbox / Core* compatibility library that proxies to a macOS host worker over vsock or TCP."
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+edition = "2021"
+
+[lib]
+name = "guest_shim"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+vt-ferry-protocol = { path = "../vt-ferry-protocol" }
+libc = "0.2"
+bytemuck = { version = "1.25", features = ["derive"] }
+parking_lot = "0.12"
+lazy_static = "1.4"
+
+[dev-dependencies]
+tempfile = "3.13"

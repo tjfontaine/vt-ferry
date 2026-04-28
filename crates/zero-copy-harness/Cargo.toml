@@ -1,0 +1,16 @@
+[package]
+name = "zero-copy-harness"
+description = "Internal harness binary for the vt-ferry zero-copy IOSurface path."
+publish = false
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+edition = "2024"
+
+[dependencies]
+bytemuck = { version = "1.25.0", features = ["derive"] }
+libc = "0.2.185"
+vt-ferry-protocol = { version = "0.1.0", path = "../vt-ferry-protocol" }

@@ -1,0 +1,13 @@
+[package]
+name = "vt-ferry-protocol"
+description = "Wire protocol types for vt-ferry — paravirtualized VideoToolbox over vsock."
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+edition = "2024"
+
+[dependencies]
+bytemuck = { version = "1.25.0", features = ["derive"] }

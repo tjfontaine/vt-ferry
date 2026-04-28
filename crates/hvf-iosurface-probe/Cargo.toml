@@ -1,0 +1,14 @@
+[package]
+name = "hvf-iosurface-probe"
+description = "Internal probe for cross-task IOSurface transfer via Hypervisor.framework."
+publish = false
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+edition = "2024"
+
+[dependencies]
+libc = "0.2"

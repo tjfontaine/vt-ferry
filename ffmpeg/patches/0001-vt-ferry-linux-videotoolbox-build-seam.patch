@@ -1,0 +1,265 @@
+diff --git a/configure b/configure
+index 1759694..0d888a1 100755
+--- a/configure
++++ b/configure
+@@ -2244,6 +2244,7 @@ CONFIG_LIST="
+     pic
+     shader_compression
+     resource_compression
++    vt_ferry_videotoolbox_linux
+     thumb
+     valgrind_backtrace
+     xmm_clobber_test
+@@ -2816,6 +2817,7 @@ CMDLINE_SELECT="
+     optimizations
+     response_files
+     rpath
++    vt_ferry_videotoolbox_linux
+     stripping
+     version_tracking
+ "
+@@ -3843,7 +3845,7 @@ libxvid_encoder_deps="libxvid"
+ libzvbi_teletext_decoder_deps="libzvbi"
+ vapoursynth_demuxer_deps="vapoursynth"
+ videotoolbox_suggest="coreservices"
+-videotoolbox_deps="corefoundation coremedia corevideo VTDecompressionSessionDecodeFrame"
++videotoolbox_deps="corefoundation coremedia corevideo"
+ videotoolbox_encoder_deps="videotoolbox VTCompressionSessionPrepareToEncodeFrames"
+ 
+ # demuxers / muxers
+@@ -6989,10 +6991,19 @@ check_headers sys/un.h
+ check_headers termios.h
+ check_headers unistd.h
+ check_headers valgrind/valgrind.h
+-check_func_headers VideoToolbox/VTCompressionSession.h VTCompressionSessionPrepareToEncodeFrames -framework VideoToolbox
+-check_func_headers VideoToolbox/VideoToolbox.h VTDecompressionSessionDecodeFrame -framework VideoToolbox
+-check_func_headers VideoToolbox/VideoToolbox.h VTPixelTransferSessionCreate -framework VideoToolbox
+-check_func_headers VideoToolbox/VideoToolbox.h VTPixelRotationSessionCreate -framework VideoToolbox
++if enabled vt_ferry_videotoolbox_linux; then
++    check_headers CoreFoundation/CoreFoundation.h && enable corefoundation
++    check_headers CoreMedia/CoreMedia.h && enable coremedia
++    check_headers CoreVideo/CoreVideo.h && enable corevideo
++    check_func_headers VideoToolbox/VTCompressionSession.h VTCompressionSessionPrepareToEncodeFrames
++    check_func_headers VideoToolbox/VideoToolbox.h VTPixelTransferSessionCreate
++    check_func_headers VideoToolbox/VideoToolbox.h VTPixelRotationSessionCreate
++else
++    check_func_headers VideoToolbox/VTCompressionSession.h VTCompressionSessionPrepareToEncodeFrames -framework VideoToolbox
++    check_func_headers VideoToolbox/VideoToolbox.h VTDecompressionSessionDecodeFrame -framework VideoToolbox
++    check_func_headers VideoToolbox/VideoToolbox.h VTPixelTransferSessionCreate -framework VideoToolbox
++    check_func_headers VideoToolbox/VideoToolbox.h VTPixelRotationSessionCreate -framework VideoToolbox
++fi
+ check_headers windows.h
+ check_headers asm/types.h
+ 
+@@ -7024,11 +7035,11 @@ enabled audiotoolbox && check_apple_framework AudioToolbox
+ enabled avfoundation && check_apple_framework AVFoundation
+ enabled coreimage    && check_apple_framework CoreImage
+ enabled metal        && check_apple_framework Metal
+-enabled videotoolbox && check_apple_framework VideoToolbox
++enabled videotoolbox && ! enabled vt_ferry_videotoolbox_linux && check_apple_framework VideoToolbox
+ 
+-check_apple_framework CoreFoundation
+-check_apple_framework CoreMedia
+-check_apple_framework CoreVideo
++! enabled vt_ferry_videotoolbox_linux && check_apple_framework CoreFoundation
++! enabled vt_ferry_videotoolbox_linux && check_apple_framework CoreMedia
++! enabled vt_ferry_videotoolbox_linux && check_apple_framework CoreVideo
+ check_apple_framework CoreAudio
+ 
+ enabled audiotoolbox && {
+@@ -7043,26 +7054,50 @@ enabled avfoundation && {
+ }
+ 
+ enabled videotoolbox && {
+-    check_lib coreservices CoreServices/CoreServices.h UTGetOSTypeFromString "-framework CoreServices"
+-    check_func_headers CoreMedia/CMFormatDescription.h kCMVideoCodecType_HEVC "-framework CoreMedia"
+-    check_func_headers CoreMedia/CMFormatDescription.h kCMVideoCodecType_HEVCWithAlpha "-framework CoreMedia"
+-    check_func_headers CoreMedia/CMFormatDescription.h kCMVideoCodecType_VP9 "-framework CoreMedia"
+-    check_func_headers CoreMedia/CMFormatDescription.h kCMVideoCodecType_AV1 "-framework CoreMedia"
+-    check_func_headers CoreVideo/CVPixelBuffer.h kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange "-framework CoreVideo"
+-    check_func_headers CoreVideo/CVPixelBuffer.h kCVPixelFormatType_422YpCbCr8BiPlanarVideoRange "-framework CoreVideo"
+-    check_func_headers CoreVideo/CVPixelBuffer.h kCVPixelFormatType_422YpCbCr10BiPlanarVideoRange "-framework CoreVideo"
+-    check_func_headers CoreVideo/CVPixelBuffer.h kCVPixelFormatType_422YpCbCr16BiPlanarVideoRange "-framework CoreVideo"
+-    check_func_headers CoreVideo/CVPixelBuffer.h kCVPixelFormatType_444YpCbCr8BiPlanarVideoRange "-framework CoreVideo"
+-    check_func_headers CoreVideo/CVPixelBuffer.h kCVPixelFormatType_444YpCbCr10BiPlanarVideoRange "-framework CoreVideo"
+-    check_func_headers CoreVideo/CVPixelBuffer.h kCVPixelFormatType_444YpCbCr16BiPlanarVideoRange "-framework CoreVideo"
+-    check_func_headers CoreVideo/CVImageBuffer.h kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ "-framework CoreVideo"
+-    check_func_headers CoreVideo/CVImageBuffer.h kCVImageBufferTransferFunction_ITU_R_2100_HLG "-framework CoreVideo"
+-    check_func_headers CoreVideo/CVImageBuffer.h kCVImageBufferTransferFunction_Linear "-framework CoreVideo"
+-    check_func_headers CoreVideo/CVImageBuffer.h kCVImageBufferYCbCrMatrix_ITU_R_2020 "-framework CoreVideo"
+-    check_func_headers CoreVideo/CVImageBuffer.h kCVImageBufferColorPrimaries_ITU_R_2020 "-framework CoreVideo"
+-    check_func_headers CoreVideo/CVImageBuffer.h kCVImageBufferTransferFunction_ITU_R_2020 "-framework CoreVideo"
+-    check_func_headers CoreVideo/CVImageBuffer.h kCVImageBufferTransferFunction_SMPTE_ST_428_1 "-framework CoreVideo"
+-    check_func_headers VideoToolbox/VTCompressionProperties.h kVTQPModulationLevel_Default "-framework CoreVideo"
++    if enabled vt_ferry_videotoolbox_linux; then
++        enable videotoolbox_encoder
++        enable h264_videotoolbox_encoder
++        enable hevc_videotoolbox_encoder
++        enable prores_videotoolbox_encoder
++        # Enable the H.264 + HEVC hwaccels — these route decode
++        # through VTDecompressionSession via the symbols our
++        # guest-shim exports. Other codecs (av1 / h263 / mpeg /
++        # prores / vp9) stay disabled for v1 — they need
++        # additional symbols and aren't on the v1 path.
++        enable h264_videotoolbox_hwaccel
++        enable hevc_videotoolbox_hwaccel
++        disable av1_videotoolbox_hwaccel
++        disable h263_videotoolbox_hwaccel
++        disable mpeg1_videotoolbox_hwaccel
++        disable mpeg2_videotoolbox_hwaccel
++        disable mpeg4_videotoolbox_hwaccel
++        disable prores_videotoolbox_hwaccel
++        disable vp9_videotoolbox_hwaccel
++        disable transpose_vt_filter
++        disable scale_vt_filter
++        disable yadif_videotoolbox_filter
++    else
++        check_lib coreservices CoreServices/CoreServices.h UTGetOSTypeFromString "-framework CoreServices"
++        check_func_headers CoreMedia/CMFormatDescription.h kCMVideoCodecType_HEVC "-framework CoreMedia"
++        check_func_headers CoreMedia/CMFormatDescription.h kCMVideoCodecType_HEVCWithAlpha "-framework CoreMedia"
++        check_func_headers CoreMedia/CMFormatDescription.h kCMVideoCodecType_VP9 "-framework CoreMedia"
++        check_func_headers CoreMedia/CMFormatDescription.h kCMVideoCodecType_AV1 "-framework CoreMedia"
++        check_func_headers CoreVideo/CVPixelBuffer.h kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange "-framework CoreVideo"
++        check_func_headers CoreVideo/CVPixelBuffer.h kCVPixelFormatType_422YpCbCr8BiPlanarVideoRange "-framework CoreVideo"
++        check_func_headers CoreVideo/CVPixelBuffer.h kCVPixelFormatType_422YpCbCr10BiPlanarVideoRange "-framework CoreVideo"
++        check_func_headers CoreVideo/CVPixelBuffer.h kCVPixelFormatType_422YpCbCr16BiPlanarVideoRange "-framework CoreVideo"
++        check_func_headers CoreVideo/CVPixelBuffer.h kCVPixelFormatType_444YpCbCr8BiPlanarVideoRange "-framework CoreVideo"
++        check_func_headers CoreVideo/CVPixelBuffer.h kCVPixelFormatType_444YpCbCr10BiPlanarVideoRange "-framework CoreVideo"
++        check_func_headers CoreVideo/CVPixelBuffer.h kCVPixelFormatType_444YpCbCr16BiPlanarVideoRange "-framework CoreVideo"
++        check_func_headers CoreVideo/CVImageBuffer.h kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ "-framework CoreVideo"
++        check_func_headers CoreVideo/CVImageBuffer.h kCVImageBufferTransferFunction_ITU_R_2100_HLG "-framework CoreVideo"
++        check_func_headers CoreVideo/CVImageBuffer.h kCVImageBufferTransferFunction_Linear "-framework CoreVideo"
++        check_func_headers CoreVideo/CVImageBuffer.h kCVImageBufferYCbCrMatrix_ITU_R_2020 "-framework CoreVideo"
++        check_func_headers CoreVideo/CVImageBuffer.h kCVImageBufferColorPrimaries_ITU_R_2020 "-framework CoreVideo"
++        check_func_headers CoreVideo/CVImageBuffer.h kCVImageBufferTransferFunction_ITU_R_2020 "-framework CoreVideo"
++        check_func_headers CoreVideo/CVImageBuffer.h kCVImageBufferTransferFunction_SMPTE_ST_428_1 "-framework CoreVideo"
++        check_func_headers VideoToolbox/VTCompressionProperties.h kVTQPModulationLevel_Default "-framework CoreVideo"
++    fi
+ }
+ 
+ enabled metal && test_cmd $metalcc -v || disable metal
+@@ -8745,6 +8775,22 @@ EOF
+ 
+ print_config CONFIG_ "$config_files" $ALL_COMPONENTS
+ 
++if enabled vt_ferry_videotoolbox_linux; then
++cat >> $TMPH <<EOF
++#undef CONFIG_H264_VIDEOTOOLBOX_ENCODER
++#define CONFIG_H264_VIDEOTOOLBOX_ENCODER 1
++#undef CONFIG_HEVC_VIDEOTOOLBOX_ENCODER
++#define CONFIG_HEVC_VIDEOTOOLBOX_ENCODER 1
++#undef CONFIG_PRORES_VIDEOTOOLBOX_ENCODER
++#define CONFIG_PRORES_VIDEOTOOLBOX_ENCODER 1
++EOF
++cat >> ffbuild/config.mak <<EOF
++CONFIG_H264_VIDEOTOOLBOX_ENCODER=yes
++CONFIG_HEVC_VIDEOTOOLBOX_ENCODER=yes
++CONFIG_PRORES_VIDEOTOOLBOX_ENCODER=yes
++EOF
++fi
++
+ echo "#endif /* FFMPEG_CONFIG_COMPONENTS_H */" >> $TMPH
+ echo "endif # FFMPEG_CONFIG_MAK" >> ffbuild/config.mak
+ 
+@@ -8800,6 +8846,13 @@ print_enabled_components(){
+     cp_if_changed $TMPH $file
+ }
+ 
++if enabled vt_ferry_videotoolbox_linux; then
++    enable videotoolbox_encoder
++    enable h264_videotoolbox_encoder
++    enable hevc_videotoolbox_encoder
++    enable prores_videotoolbox_encoder
++fi
++
+ print_enabled_components libavfilter/filter_list.c FFFilter filter_list $FILTER_LIST
+ print_enabled_components libavcodec/codec_list.c FFCodec codec_list $CODEC_LIST
+ print_enabled_components libavcodec/parser_list.c FFCodecParser parser_list $PARSER_LIST
+diff --git a/libavcodec/Makefile b/libavcodec/Makefile
+index 12a8265..4a12dbe 100644
+--- a/libavcodec/Makefile
++++ b/libavcodec/Makefile
+@@ -1042,7 +1042,11 @@ OBJS-$(CONFIG_D3D12VA)                    += dxva2.o d3d12va_decode.o
+ OBJS-$(CONFIG_DXVA2)                      += dxva2.o
+ OBJS-$(CONFIG_NVDEC)                      += nvdec.o
+ OBJS-$(CONFIG_VAAPI)                      += vaapi_decode.o
++ifeq ($(CONFIG_VT_FERRY_VIDEOTOOLBOX_LINUX),yes)
++OBJS-$(CONFIG_VIDEOTOOLBOX)               +=
++else
+ OBJS-$(CONFIG_VIDEOTOOLBOX)               += videotoolbox.o
++endif
+ OBJS-$(CONFIG_VDPAU)                      += vdpau.o
+ OBJS-$(CONFIG_VULKAN)                     += vulkan.o vulkan_video.o
+ 
+diff --git a/libavcodec/videotoolboxenc.c b/libavcodec/videotoolboxenc.c
+index 63e93b9..ed44b1f 100644
+--- a/libavcodec/videotoolboxenc.c
++++ b/libavcodec/videotoolboxenc.c
+@@ -18,12 +18,31 @@
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+  */
+ 
++#include "config.h"
++
++#if CONFIG_VT_FERRY_VIDEOTOOLBOX_LINUX
++#include <stdbool.h>
++#ifndef TARGET_OS_OSX
++#define TARGET_OS_OSX 0
++#endif
++#ifndef TARGET_OS_IOS
++#define TARGET_OS_IOS 0
++#endif
++#ifndef TARGET_OS_IPHONE
++#define TARGET_OS_IPHONE 0
++#endif
++#ifndef TARGET_CPU_ARM64
++#define TARGET_CPU_ARM64 0
++#endif
++#else
+ #include <Availability.h>
++#include <TargetConditionals.h>
++#endif
++
+ #include <CoreMedia/CoreMedia.h>
+ #include <CoreVideo/CoreVideo.h>
+ #include <dlfcn.h>
+ #include <pthread.h>
+-#include <TargetConditionals.h>
+ #include <VideoToolbox/VideoToolbox.h>
+ 
+ #include "libavutil/avassert.h"
+@@ -59,10 +78,6 @@ enum { kVTQPModulationLevel_Default = -1 };
+ enum { kVTQPModulationLevel_Disable = 0 };
+ #endif
+ 
+-#ifndef TARGET_CPU_ARM64
+-#   define TARGET_CPU_ARM64 0
+-#endif
+-
+ typedef OSStatus (*getParameterSetAtIndex)(CMFormatDescriptionRef videoDesc,
+                                            size_t parameterSetIndex,
+                                            const uint8_t **parameterSetPointerOut,
+diff --git a/libavutil/hwcontext_videotoolbox.c b/libavutil/hwcontext_videotoolbox.c
+index 2764097..bd7bc36 100644
+--- a/libavutil/hwcontext_videotoolbox.c
++++ b/libavutil/hwcontext_videotoolbox.c
+@@ -18,6 +18,7 @@
+ 
+ #include "config.h"
+ 
++#include <stdbool.h>
+ #include <stdint.h>
+ #include <string.h>
+ 
+diff --git a/libavutil/hwcontext_videotoolbox.h b/libavutil/hwcontext_videotoolbox.h
+index d35cfbb..613716c 100644
+--- a/libavutil/hwcontext_videotoolbox.h
++++ b/libavutil/hwcontext_videotoolbox.h
+@@ -19,6 +19,7 @@
+ #ifndef AVUTIL_HWCONTEXT_VIDEOTOOLBOX_H
+ #define AVUTIL_HWCONTEXT_VIDEOTOOLBOX_H
+ 
++#include <stdbool.h>
+ #include <stdint.h>
+ 
+ #include <VideoToolbox/VideoToolbox.h>
